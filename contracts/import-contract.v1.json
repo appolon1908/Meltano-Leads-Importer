@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "owner": "Meltano-Leads-Importer",
+  "input": [
+    "csv",
+    "xlsx via preprocessing",
+    "json",
+    "api",
+    "database"
+  ],
+  "output": {
+    "database": "leads_workstation",
+    "schema": "lead_import_raw",
+    "required_metadata": [
+      "import_batch_id",
+      "source_name",
+      "source_row",
+      "ingested_at",
+      "source_fingerprint"
+    ]
+  },
+  "promotion": {
+    "authority": "Leads-Workstation API",
+    "direct_to_canonical_forbidden": true
+  },
+  "downstream": {
+    "n8n_trigger": "accepted lead / import-completed event after promotion",
+    "n8n_direct_db_write_forbidden": true
+  }
+}
