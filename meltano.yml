@@ -1,0 +1,26 @@
+default_environment: dev
+project_id: 01a0cf45-452b-763c-9feb-445ba4e143c7
+environments:
+- name: dev
+- name: staging
+- name: prod
+send_anonymous_usage_stats: false
+plugins:
+  extractors:
+  - name: tap-csv
+    variant: meltanolabs
+    pip_url: git+https://github.com/MeltanoLabs/tap-csv.git
+    config:
+      csv_files_definition: config/csv-files.test.json
+      add_metadata_columns: true
+  loaders:
+  - name: target-postgres
+    variant: meltanolabs
+    pip_url: meltanolabs-target-postgres
+    config:
+      host: 127.0.0.1
+      port: 5432
+      user: leads_importer
+      database: leads_workstation
+      default_target_schema: lead_import_raw
+      add_record_metadata: true
