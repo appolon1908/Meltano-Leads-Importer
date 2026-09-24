@@ -33,3 +33,17 @@ n8n runs **after** accepted lead events and does not replace Meltano or the Lead
 ## Local target
 
 Ubuntu desktop: `desktop-ubuntu-codestra`.
+## Governed CSV batch preparation
+
+Before a frozen CSV source is loaded into raw staging, derive an import file with the provenance fields required by `contracts/import-contract.v1.json`:
+
+```bash
+python3 scripts/prepare_csv_batch.py \
+  --source /path/to/frozen-source.csv \
+  --output /path/to/prepared-raw.csv \
+  --batch-id <uuid> \
+  --source-name <authority-name> \
+  --expected-sha256 <frozen-source-sha256>
+```
+
+The preparer verifies the frozen source hash, never edits the source, adds `import_batch_id`, `source_name`, `source_row`, `ingested_at`, and `source_fingerprint`, and writes the derived file atomically. The derived file is for `lead_import_raw` only. Canonical promotion remains the responsibility of the Leads Workstation API after validation and review.
