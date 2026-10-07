@@ -1,0 +1,3 @@
+source_id,business_name,contact_name,country,business_category,email,phone,status
+TEST-001,Alpha Logistics,Ana Test,Dominican Republic,Transportation,ana@example.invalid,+18095550101,new
+TEST-002,Beta Clinic,Ben Test,United States,Healthcare,ben@example.invalid,+16175550102,new

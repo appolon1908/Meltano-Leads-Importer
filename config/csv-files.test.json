@@ -1,0 +1,8 @@
+[
+  {
+    "entity": "lead_import_test",
+    "path": "tests/fixtures/sample-leads.csv",
+    "keys": ["source_id"],
+    "encoding": "UTF-8"
+  }
+]
