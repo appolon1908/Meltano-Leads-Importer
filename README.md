@@ -1,35 +1,72 @@
 # Meltano Leads Importer
 
-Codestra ingestion authority for the Ubuntu Leads Workstation.
+Codestra ingestion authority for the Leads Workstation.
 
-## Mission
+## Implemented runtime
 
-Import lead sources safely into PostgreSQL raw staging with provenance, batch evidence and repeatable state. This repo does **not** own canonical lead business rules.
+This repository now contains a working importer, not only contracts:
 
-## Repository workflow
-
-1. **00 Authority & Architecture** — source inventory, connector selection, mapping contract.
-2. **10 Build & Test** — Meltano project/plugins, mappings, dry-run fixtures, validation hooks.
-3. **20 Integration & Dependencies** — PostgreSQL raw schema, Leads API promotion contract, n8n post-import event handoff.
-4. **30 Staging & Release** — repeatable import, idempotency, failure recovery, batch evidence.
+- Meltano project definition with development, testing, staging and production environments
+- CSV, JSON and JSONL source preview/import
+- local SQLite raw-staging mirror for development/certification
+- PostgreSQL raw-staging writer for production
+- required batch IDs, source path/name, SHA-256, row number, ingested timestamp and source fingerprint
+- idempotent replay protection
+- exact raw-row duplicate skipping
+- Country and Business Category preserved as separate raw fields
+- promotion only through the Leads Workstation API
+- canonical database targets explicitly refused
+- batch statistics and promotion status tracking
+- backup and certification scripts
 
 ## Data path
 
-`source -> Meltano -> PostgreSQL lead_import_raw -> Leads API validation/promotion -> canonical leads`
+source -> Meltano-Leads-Importer -> lead_import_raw staging -> Leads Workstation API -> canonical leads
 
-n8n runs **after** accepted lead events and does not replace Meltano or the Leads API.
+n8n runs only after accepted-lead/import-completed events. It does not replace Meltano and must not write canonical lead tables directly.
 
-## Import guarantees
+## Laptop install
 
-- source provenance is preserved;
-- every run has an import batch ID;
-- country and business category remain separate;
-- dry-run/preview precedes canonical promotion;
-- retries are idempotent;
-- exact duplicates can be skipped;
-- uncertain duplicates go to review;
-- raw imports are never silently deleted.
+PowerShell:
 
-## Local target
+    cd C:\Users\Usuario\Documents\GitHub\Meltano-Leads-Importer
+    .\scripts\install.ps1
+    .\scripts\import-master.ps1
 
-Ubuntu desktop: `desktop-ubuntu-codestra`.
+The full laptop master is read from:
+
+    C:\Users\Usuario\03_LEADS_AND_DATA\01_CORE\Master\MASTER_SALES_LEADS_20260921.csv
+
+Runtime databases are written under runtime/ and are ignored by Git.
+
+## Production PostgreSQL
+
+Database-migrations- owns applying sql/lead_import_raw.sql.
+
+Set LEADS_IMPORT_POSTGRES_DSN, then verify:
+
+    .venv\Scripts\python.exe -m meltano_leads_importer check-postgres
+
+Import:
+
+    .venv\Scripts\python.exe -m meltano_leads_importer import-postgres <source.csv>
+
+The importer refuses any schema except lead_import_raw.
+
+## Promotion
+
+Raw rows are never silently promoted.
+
+To promote a staged batch through the governed Leads Workstation API:
+
+    .venv\Scripts\python.exe -m meltano_leads_importer promote-batch <batch-id> --url http://127.0.0.1:8765
+
+## Repository workflow
+
+00 Authority & Architecture -> 10 Build & Test -> 20 Integration & Dependencies -> 30 Staging & Release.
+
+Promotion order is development -> testing -> staging -> production.
+
+## Privacy
+
+Lead payloads and raw staging databases are local/private runtime data. They must not be committed to a public repository.

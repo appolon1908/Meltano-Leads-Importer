@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codestra-meltano-leads-importer"
+version = "0.1.0"
+description = "Governed raw lead ingestion runtime for Codestra."
+requires-python = ">=3.11"
+dependencies = ["meltano>=4.4,<5"]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.2"]
+
+[project.scripts]
+meltano-leads-importer = "meltano_leads_importer.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

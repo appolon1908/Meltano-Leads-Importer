@@ -1,8 +1,18 @@
-name: contracts
+name: meltano-leads-importer-ci
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - development
+      - testing
+      - staging
+      - production
+      - main
+      - 'mission/**'
+      - 'subsection/**'
+      - 'section/**'
+      - 'workstation/**'
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -10,6 +20,43 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Validate import contract
         run: python -m json.tool contracts/import-contract.v1.json >/dev/null
+      - name: Unit tests
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: Compile
+        run: python -m compileall -q src
+      - name: Verify Meltano project file
+        run: |
+          grep -q 'name: leads-importer' meltano.yml
+          grep -q 'development' meltano.yml
+          grep -q 'production' meltano.yml
+
+  codestra_control_plane:
+    name: codestra-control-plane
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce raw staging authority
+        run: |
+          grep -q 'direct_to_canonical_forbidden' contracts/import-contract.v1.json
+          grep -q 'lead_import_raw' sql/lead_import_raw.sql
+          grep -q 'Lead/contact payload must never be pushed to a public repository' AGENTS.md
+          printf '%s\n' 'runtime/raw-staging.db' | git check-ignore --stdin
+
+  codestra_control_plane_legacy:
+    name: codestra/control-plane
+    needs: [validate, codestra_control_plane]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify governed importer artifacts
+        run: |
+          test -f scripts/certify.ps1
+          test -f src/meltano_leads_importer/store.py
+          test -f src/meltano_leads_importer/postgres.py
+          test -f src/meltano_leads_importer/promotion.py
