@@ -1,0 +1,33 @@
+requires_meltano: ">=4.4,<5"
+default_environment: dev
+project_id: codestra-meltano-leads-importer
+
+environments:
+  - name: dev
+    config:
+      stage: development
+  - name: testing
+    config:
+      stage: testing
+  - name: staging
+    config:
+      stage: staging
+  - name: production
+    config:
+      stage: production
+
+plugins:
+  utilities:
+    - name: leads-importer
+      namespace: codestra
+      pip_url: -e .
+      executable: meltano-leads-importer
+      settings:
+        - name: staging_db
+          env: LEADS_IMPORT_STAGING_DB
+        - name: leads_api_url
+          env: LEADS_WORKSTATION_API_URL
+        - name: postgres_dsn
+          env: LEADS_IMPORT_POSTGRES_DSN
+
+schedules: []
