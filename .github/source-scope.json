@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "repository": "appolon1908/Meltano-Leads-Importer",
+  "scope": "documentation-contract-only",
+  "application_source_allowed": false,
+  "baseline_files": [
+    ".github/workflows/contracts.yml",
+    "AGENTS.md",
+    "README.md",
+    "contracts/import-contract.v1.json",
+    "docs/ARCHITECTURE-CHARTS.md"
+  ],
+  "authority_hashes": {
+    ".github/workflows/contracts.yml": "b1584b93b30f670cb5a6ae7e690ba32ae082fd9361d11551fa5b600cd31ff7eb",
+    "AGENTS.md": "2292e97693c626f4fff05894d19328b6c3724daccc6cf6f7bdeba3ec7d2fb081"
+  },
+  "required_text": {},
+  "structured_files": {
+    ".github/workflows/contracts.yml": {
+      "name": "contracts",
+      "on": {
+        "pull_request": null,
+        "push": {
+          "branches": [
+            "main"
+          ]
+        }
+      },
+      "jobs": {
+        "validate": {
+          "runs-on": "ubuntu-latest",
+          "steps": [
+            {
+              "uses": "actions/checkout@v4"
+            },
+            {
+              "uses": "actions/setup-python@v5",
+              "with": {
+                "python-version": "3.12"
+              }
+            },
+            {
+              "name": "Validate import contract",
+              "run": "python -m json.tool contracts/import-contract.v1.json >/dev/null"
+            }
+          ]
+        }
+      }
+    },
+    "contracts/import-contract.v1.json": {
+      "schema_version": "1.0",
+      "owner": "Meltano-Leads-Importer",
+      "input": [
+        "csv",
+        "xlsx via preprocessing",
+        "json",
+        "api",
+        "database"
+      ],
+      "output": {
+        "database": "leads_workstation",
+        "schema": "lead_import_raw",
+        "required_metadata": [
+          "import_batch_id",
+          "source_name",
+          "source_row",
+          "ingested_at",
+          "source_fingerprint"
+        ]
+      },
+      "promotion": {
+        "authority": "Leads-Workstation API",
+        "direct_to_canonical_forbidden": true
+      },
+      "downstream": {
+        "n8n_trigger": "accepted lead / import-completed event after promotion",
+        "n8n_direct_db_write_forbidden": true
+      }
+    },
+    "governance/interim-release-policy.json": {
+      "schema_version": 1,
+      "policy_kind": "source_merge",
+      "repository": "appolon1908/Meltano-Leads-Importer",
+      "authorization_date": "2026-11-02",
+      "required_checks": [
+        {
+          "context": "documentation-contract-source",
+          "integration_id": 15368,
+          "workflow": ".github/workflows/source-scope.yml"
+        },
+        {
+          "context": "validate",
+          "integration_id": 15368,
+          "workflow": ".github/workflows/contracts.yml"
+        }
+      ],
+      "replaces_contexts": [
+        "codestra-control-plane",
+        "codestra/control-plane"
+      ],
+      "preserve": [
+        "other_required_checks",
+        "review_requirements",
+        "ref_conditions",
+        "bypass_actors",
+        "enforcement",
+        "force_push_protection",
+        "deletion_protection",
+        "deployment_authority"
+      ],
+      "production_activation_authorized": false,
+      "note": "GitHub rulesets remain the enforcement authority. Documentation/contract-only validation denies application sources until vetted product CI is separately reviewed; it does not certify runtime or authorize deployment."
+    }
+  }
+}
